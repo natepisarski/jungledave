@@ -1,0 +1,16 @@
+﻿<Properties StartupItem="JungleDave/JungleDave.csproj">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="firefox" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="JungleDave/Scripts/GameCore.ts">
+    <Files>
+      <File FileName="JungleDave/Views/Home/Index.cshtml" Line="6" Column="1" />
+      <File FileName="JungleDave/Scripts/GameCore.ts" Line="316" Column="3" />
+      <File FileName="JungleDave/Views/_ViewStart.cshtml" Line="2" Column="5" />
+      <File FileName="JungleDave/Views/Shared/_Layout.cshtml" Line="7" Column="17" />
+      <File FileName="JungleDave/Scripts/Movable.ts" Line="1" Column="1" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>

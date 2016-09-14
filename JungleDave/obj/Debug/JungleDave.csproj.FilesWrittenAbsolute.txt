@@ -1,0 +1,12 @@
+/home/nate/Code/JungleDave/JungleDave/obj/Debug/.NETFramework,Version=v4.5.AssemblyAttribute.cs
+/home/nate/Code/JungleDave/JungleDave/bin/JungleDave.dll.mdb
+/home/nate/Code/JungleDave/JungleDave/bin/JungleDave.dll
+/home/nate/Code/JungleDave/JungleDave/obj/Debug/JungleDave.dll
+/home/nate/Code/JungleDave/JungleDave/obj/Debug/JungleDave.dll.mdb
+/home/nate/Code/JungleDave/JungleDave/bin/Microsoft.Web.Infrastructure.dll
+/home/nate/Code/JungleDave/JungleDave/bin/System.Web.Razor.dll
+/home/nate/Code/JungleDave/JungleDave/bin/System.Web.Helpers.dll
+/home/nate/Code/JungleDave/JungleDave/bin/System.Web.WebPages.dll
+/home/nate/Code/JungleDave/JungleDave/bin/System.Web.WebPages.Deployment.dll
+/home/nate/Code/JungleDave/JungleDave/bin/System.Web.WebPages.Razor.dll
+/home/nate/Code/JungleDave/JungleDave/bin/System.Web.Mvc.dll
