@@ -96,6 +96,5 @@
   <ItemGroup>
     <None Include="Scripts\GameCore.js.map" />
     <None Include="Scripts\GameCore.ts" />
-    <None Include="Scripts\Movable.ts" />
   </ItemGroup>
 </Project>

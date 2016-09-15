@@ -1,7 +1,8 @@
-var __extends = (this && this.__extends) || function (d, b) {
+var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    __.prototype = b.prototype;
+    d.prototype = new __();
 };
 function areThe(items, actual1, actual2) {
     return (items[0] == actual1 || items[0] == actual2) && (items[1] == actual1 || items[1] == actual2);
@@ -31,42 +32,55 @@ var MovableItem = (function () {
         return (Math.abs(this.centerX() - item.centerX()) < this.width && Math.abs(this.centerY() - item.centerY()) < this.height);
     };
     return MovableItem;
-}());
+})();
 var ShotNuke = (function (_super) {
     __extends(ShotNuke, _super);
     function ShotNuke(parent) {
         _super.call(this, parent.xPosition, parent.yPosition, parent.xAcceleration * 2, parent.yAcceleration * 2, 32, 32, "shotNuke", parent.type);
     }
     return ShotNuke;
-}(MovableItem));
+})(MovableItem);
 var Canada = (function (_super) {
     __extends(Canada, _super);
     function Canada(x, y) {
         _super.call(this, x, y, 1, 1, 32, 32, "canada", "canada");
     }
     return Canada;
-}(MovableItem));
+})(MovableItem);
 var Mexico = (function (_super) {
     __extends(Mexico, _super);
     function Mexico(x, y) {
         _super.call(this, x, y, 0, 0, 32, 32, "mexico", "mexico");
     }
     return Mexico;
-}(MovableItem));
+})(MovableItem);
 var Nuke = (function (_super) {
     __extends(Nuke, _super);
     function Nuke(x, y) {
         _super.call(this, x, y, 0, 0, 32, 32, "nuke", "nuke");
     }
     return Nuke;
-}(MovableItem));
+})(MovableItem);
 var America = (function (_super) {
     __extends(America, _super);
     function America(x, y) {
         _super.call(this, x, y, 10, 10, 32, 32, "america", "america");
     }
     return America;
-}(MovableItem));
+})(MovableItem);
+var SmartBomb = (function (_super) {
+    __extends(SmartBomb, _super);
+    function SmartBomb(parent) {
+        _super.call(this, parent.xPosition, parent.yPosition, parent.xAcceleration, 1, 32, 32, "smartbomb", "smartbomb");
+        this.theParent = parent;
+    }
+    SmartBomb.prototype.tick = function () {
+        this.xAcceleration = this.theParent.xAcceleration;
+        this.xPosition += this.xAcceleration;
+        this.yPosition += this.yAcceleration;
+    };
+    return SmartBomb;
+})(MovableItem);
 var movableItems = new Array();
 var labels = new Array();
 function randomBetween(num1, num2) {
@@ -83,7 +97,7 @@ var GameObject = (function () {
         this.picture.style.top = this.entity.yPosition.toString() + "px";
     };
     return GameObject;
-}());
+})();
 var ControlledLabel = (function () {
     function ControlledLabel(label, textObject) {
         this.label = label;
@@ -93,17 +107,20 @@ var ControlledLabel = (function () {
         this.label.innerHTML = this.textObject.toString();
     };
     return ControlledLabel;
-}());
+})();
 var GameController = (function () {
     function GameController(mexicoResource, canadaResource, americaResource, nukeResource) {
+        /* Game State Controls */
         this.activeNuke = null;
         this.points = 0;
         this.mexicoResource = mexicoResource;
         this.canadaResource = canadaResource;
         this.americaResource = americaResource;
         this.nukeResource = nukeResource;
+        this.streaks = new Array();
     }
-    GameController.prototype.generateItem = function (xPos, yPos, type) {
+    GameController.prototype.wrap = function (item) {
+        var type = item.name;
         var image = document.createElement("img");
         image.style.position = "absolute";
         image.height = 32;
@@ -123,6 +140,12 @@ var GameController = (function () {
         else if (type == "shotNuke") {
             image.src = this.nukeResource;
         }
+        else if (type == "smartbomb") {
+            image.src = this.americaResource;
+        }
+        return new GameObject(item, image);
+    };
+    GameController.prototype.generateItem = function (xPos, yPos, type) {
         var mvIt;
         if (type == "mexico") {
             mvIt = new Mexico(xPos, yPos);
@@ -139,16 +162,22 @@ var GameController = (function () {
         else if (type == "shotNuke") {
             mvIt = new ShotNuke(this.getGameObjectByName("canada").entity);
         }
-        document.getElementById("body").appendChild(image);
-        var theObject = new GameObject(mvIt, image);
-        movableItems.push(theObject);
-        return theObject;
+        else if (type == "smartbomb") {
+            mvIt = new SmartBomb(this.getGameObjectByName("canada").entity);
+        }
+        var wrapped = this.wrap(mvIt);
+        movableItems.push(wrapped);
+        document.getElementById("body").appendChild(wrapped.picture);
+        return wrapped;
     };
     GameController.prototype.plotRandom = function (type) {
         this.generateItem(randomBetween(10, window.innerWidth), randomBetween(10, window.innerHeight), type);
     };
     GameController.prototype.shootNuke = function () {
         this.generateItem(0, 0, "shotNuke");
+    };
+    GameController.prototype.shootSmartBomb = function () {
+        this.generateItem(150, 150, "smartbomb");
     };
     GameController.prototype.shootNukeFromParent = function (parent) {
         var mvIt = new ShotNuke(parent);
@@ -168,13 +197,14 @@ var GameController = (function () {
         return null;
     };
     GameController.prototype.updateAll = function () {
+        document.getElementById("statusbar").innerText = this.points.toString() + " points.";
+        Streaks.streakCheck();
         for (var i = 0; i < movableItems.length; i = i + 1) {
             movableItems[i].update();
         }
         for (var i = 0; i < movableItems.length; i++) {
             labels[i].update();
         }
-        document.getElementById("statusbar").innerHTML = this.points.toString() + " points.";
     };
     GameController.prototype.collisionDetection = function () {
         var element, otherElement;
@@ -201,10 +231,19 @@ var GameController = (function () {
         else if (item1.entity.name == "shotNuke" && item2.entity.name == "nuke") {
             CollisionEvents.shotNukeNuke(item1, item2);
         }
+        else if (item1.entity.name == "mexico" && item2.entity.name == "mexico") {
+            CollisionEvents.mexicoMexico(item1, item2);
+        }
+        else if (item1.entity.name == "smartbomb" && item2.entity.name == "mexico") {
+            CollisionEvents.smartbombMexico(item1, item2);
+        }
+        else if (item1.entity.name == "smartbomb" && item2.entity.name == "nuke") {
+            CollisionEvents.smartbombNuke(item1, item2);
+        }
     };
     GameController.prototype.clean = function () {
         for (var i = 0; i < movableItems.length; i++) {
-            if (movableItems[i].entity.xPosition > window.innerWidth || movableItems[i].entity.yPosition > window.innerHeight) {
+            if (movableItems[i].entity.xPosition > window.innerWidth || movableItems[i].entity.yPosition > window.innerHeight || movableItems[i].entity.yPosition < 0) {
                 if (movableItems[i].entity.name == "canada") {
                     alert("You have lost with " + controller.points + " points");
                     location.reload();
@@ -229,7 +268,7 @@ var GameController = (function () {
             canadaElement.entity.xAcceleration += 3 + xFactor;
         }
         else if (input == "P" || input == "p") {
-            this.shootNuke();
+            this.shootSmartBomb();
         }
     };
     GameController.prototype.start = function () {
@@ -243,7 +282,7 @@ var GameController = (function () {
         }, 5000);
     };
     return GameController;
-}());
+})();
 var CollisionEvents = (function () {
     function CollisionEvents() {
     }
@@ -264,29 +303,72 @@ var CollisionEvents = (function () {
     CollisionEvents.shotNukeMexicoCollision = function (shotNuke, mexico) {
         controller.points += 2;
         controller.plotRandom("nuke");
-        CollisionEvents.removeElement(mexico);
+        mexico.entity.xAcceleration = randomBetween(-10, 10);
+        mexico.entity.yAcceleration = randomBetween(-10, 10);
     };
     CollisionEvents.shotNukeNuke = function (shotNuke, nuke) {
         controller.points++;
         controller.plotRandom("nuke");
         CollisionEvents.removeElement(shotNuke);
-        for (var i = 0; i < 20; i++) {
+        for (var i = 0; i < 10; i++) {
             controller.plotRandom("nuke");
         }
         var theNukes = movableItems.filter(function (x) { return x.entity.name == "nuke"; });
         for (var i = 0; i < theNukes.length; i++) {
-            theNukes[i].entity.xAcceleration = randomBetween(0, 10);
-            theNukes[i].entity.yAcceleration = randomBetween(0, 10);
+            theNukes[i].entity.xAcceleration = randomBetween(-10, 10);
+            theNukes[i].entity.yAcceleration = randomBetween(-10, 10);
         }
         controller.plotRandom("nuke");
     };
+    CollisionEvents.mexicoMexico = function (mexico1, mexico2) {
+        CollisionEvents.shotNukeMexicoCollision(mexico1, mexico2);
+    };
+    CollisionEvents.smartbombNuke = function (smartbomb, nuke) {
+        CollisionEvents.removeElement(nuke);
+        smartbomb.entity.yAcceleration = 100;
+    };
+    CollisionEvents.smartbombMexico = function (smartbomb, mexico) {
+        controller.generateItem(mexico.entity.xPosition, mexico.entity.yPosition, "nuke");
+        CollisionEvents.removeElement(mexico);
+    };
     return CollisionEvents;
-}());
+})();
+var Streaks = (function () {
+    function Streaks() {
+    }
+    Streaks.streakCheck = function () {
+        if (controller.points > 0 && controller.lastStreak != controller.points) {
+            controller.lastStreak = controller.points;
+            if (controller.points % 5 == 0) {
+                this.streak("shotNuke");
+            }
+            if (controller.points % 10 == 0) {
+                this.streak("america");
+            }
+            if (controller.points % 25 == 0) {
+                this.streak("smartbomb");
+            }
+        }
+    };
+    Streaks.streak = function (streakName) {
+        var canadaElement = controller.getGameObjectByName("canada");
+        if (streakName == "shotNuke") {
+            controller.shootNuke();
+        }
+        else if (streakName == "smartBomb") {
+            controller.shootSmartBomb();
+        }
+    };
+    return Streaks;
+})();
+/* *** Actual Game Setup (with webpage)*** */
 var controller;
+// Sets up the Controller and runs it
 function setup() {
     controller = new GameController("Content/mexico.png", "Content/canada.png", "Content/america.png", "Content/nuke.png");
     controller.generateItem(250, 250, "canada");
     controller.generateItem(150, 150, "nuke");
+    // Pass key events to "handle"
     document.onkeypress = function (evt) {
         controller.handleInput(evt.key);
     };
@@ -295,4 +377,3 @@ function setup() {
     labels.push(new ControlledLabel(statusbar, controller.getGameObjectByName("canada").entity.yAcceleration));
     controller.start();
 }
-//# sourceMappingURL=GameCore.js.map
