@@ -74,6 +74,17 @@ class Nuke extends MovableItem {
 class America extends MovableItem {
 	constructor(x: number, y: number) {
 		super(x, y, 10, 10, 32, 32, "america", "america");
+		this.xPosition = randomBetween(0, window.innerWidth);
+		this.yPosition = randomBetween(0, window.innerHeight);
+	}
+
+	public tick() : void { 
+		
+		this.xAcceleration = randomBetween(0, 5);
+		this.yAcceleration = randomBetween(0, 5);
+
+		this.xPosition += this.xAcceleration;
+		this.yPosition += this.yAcceleration;
 	}
 }
 
@@ -86,7 +97,7 @@ class SmartBomb extends MovableItem {
 	}
 
 	public tick(): void {
-		this.xAcceleration = this.theParent.xAcceleration;
+		this.xAcceleration = this.theParent.xAcceleration * 2;
 
 		this.xPosition += this.xAcceleration;
 		this.yPosition += this.yAcceleration;
@@ -280,10 +291,19 @@ class GameController {
 			CollisionEvents.smartbombMexico(item1, item2);
 		} else if(item1.entity.name == "smartbomb" && item2.entity.name == "nuke") {
 			CollisionEvents.smartbombNuke(item1, item2);
+		} else if(item1.entity.name == "america" && item2.entity.name != "canada") {
+			CollisionEvents.americaImpact(item1, item2);
 		}
 	}
 
 	public clean() : void {
+		var theNukes = movableItems.filter(x => x.entity.name == "nuke");
+		if(theNukes.length > 25) {
+			for(var i = 0; i < theNukes.length; i++) {
+				CollisionEvents.removeElement(theNukes[i]);
+			}
+		}
+		controller.plotRandom("nuke");
 		for(var i = 0; i < movableItems.length; i++) {
 			if(movableItems[i].entity.xPosition > window.innerWidth || movableItems[i].entity.yPosition > window.innerHeight || movableItems[i].entity.yPosition < 0) {
 				if(movableItems[i].entity.name == "canada") {
@@ -350,6 +370,12 @@ class CollisionEvents {
 		mexico.entity.yAcceleration = randomBetween(-10, 10);
 	}
 
+	public static americaImpact(item1: GameObject, item2: GameObject) : void {
+		controller.points++;
+
+		CollisionEvents.removeElement(item1);
+		CollisionEvents.removeElement(item2);
+	}
 	public static shotNukeNuke(shotNuke: GameObject, nuke: GameObject): void { 
 		controller.points++;
 		controller.plotRandom("nuke");
@@ -371,13 +397,16 @@ class CollisionEvents {
 	}
 
 	public static mexicoMexico(mexico1: GameObject, mexico2: GameObject): void {
-		CollisionEvents.shotNukeMexicoCollision(mexico1, mexico2)
+		CollisionEvents.shotNukeMexicoCollision(mexico1, mexico2);
 	}
 
 	public static smartbombNuke(smartbomb: GameObject, nuke: GameObject) : void {
+		controller.plotRandom("nuke");
+		controller.plotRandom("nuke");
+
 		CollisionEvents.removeElement(nuke);
 
-		smartbomb.entity.yAcceleration = 100;
+		smartbomb.entity.yAcceleration = -5;
 	}
 
 	public static smartbombMexico(smartbomb: GameObject, mexico: GameObject) : void {
@@ -390,7 +419,7 @@ class Streaks {
 	public static streakCheck(): void {
 		if(controller.points > 0 && controller.lastStreak != controller.points) {
 			controller.lastStreak = controller.points;
-			if(controller.points % 5 == 0) {
+			if(controller.points % 2 == 0) {
 				this.streak("shotNuke");
 			}
 			if(controller.points % 10 == 0) {
@@ -409,6 +438,10 @@ class Streaks {
 			controller.shootNuke();
 		} else if(streakName == "smartBomb") {
 			controller.shootSmartBomb();
+		} else if(streakName == "america") {
+			for(var i = 0; i < 15; i++) {
+				controller.generateItem(150, 150, "america");
+			}
 		}
 	}
 }
